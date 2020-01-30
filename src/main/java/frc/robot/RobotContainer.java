@@ -8,8 +8,16 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc.robot.commands.AutoCommand1;
+import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -19,14 +27,34 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
- 
 
+  // subsystems
+  private final DriveSubsystem driveSubsystem = new DriveSubsystem();
+
+  // sticks
+  public Joystick stick = new Joystick(Constants.joystickPort);
+
+  // Setup autonomous
+  SendableChooser<Command> m_chooser = new SendableChooser<>();
+  private final Command m_simpleAuto = new AutoCommand1();
+  
   /**
    * The container for the robot.  Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+
+    driveSubsystem.setDefaultCommand(
+      new RunCommand(() -> driveSubsystem.arcadeDrive(-stick.getY(),
+      stick.getTwist()), driveSubsystem)
+    );
+
+    // Add commands to the autonomous command chooser
+    m_chooser.addOption("Test Auto", m_simpleAuto);
+
+    // Put the chooser on the dashboard
+    Shuffleboard.getTab("Autonomous").add(m_chooser);
   }
 
   /**
@@ -46,6 +74,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // A Command will run in autonomous
-    return m_autoCommand;
+    return m_chooser.getSelected();
+
   }
 }
